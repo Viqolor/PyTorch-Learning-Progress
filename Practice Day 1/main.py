@@ -52,7 +52,7 @@ def validate(model, dataloader, device, criterion):
 
     val_loss /= num_batches
     correct /= size
-    print(f"Validation Result \n Accuracy: {(100*correct):>.1f}%, Val Loss {val_loss:.8f}")
+    print(f"Validation Result \n Accuracy: {(100*correct):.1f}%, Val Loss {val_loss:.8f}")
 
 def main():
     device = torch.device("cuda" if cuda.is_available() else "cpu")
@@ -72,4 +72,4 @@ def main():
         validate(Practice_MLP, test_loader, device, criterion)
 
 if __name__ == "__main__":
-        main()
+    main()
