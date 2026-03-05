@@ -16,7 +16,7 @@ def train_epoch(model, dataloader, device, criterion, optimizer, epoch_count):
     try:
         model.train()
         print(f"Epoch #{epoch_count}")
-        train_loss, batch_loss = 0.0, 0.0
+        train_loss, batch_loss, correct, samples_processed = 0.0, 0.0, 0.0, 0.0
 
         for batch, (images, labels) in enumerate(dataloader):
             images, labels = images.to(device), labels.to(device)
@@ -28,8 +28,13 @@ def train_epoch(model, dataloader, device, criterion, optimizer, epoch_count):
             train_loss += loss.item()
             batch_loss += loss.item()
 
+            batch_accuracy = 100 * (output.argmax(1) == labels).sum().item() / len(images)
+            correct += (output.argmax(1) == labels).sum().item()
+            samples_processed += len(images)
+            cum_accuracy = 100 * correct/samples_processed
+
             if batch % 100 == 99:
-                print(f"Batch {batch+1}: batch_loss {(batch_loss / 100):.8f}")
+                print(f"Batch {batch+1}: batch_loss {(batch_loss / 100):.8f}, batch_accuracy: {batch_accuracy:.1f}%, cumulative_accuracy: {cum_accuracy:.1f}%")
                 batch_loss = 0.0
             
         train_loss /= num_batches
@@ -53,12 +58,11 @@ def validate(model, dataloader, device, criterion):
                 images, labels = images.to(device), labels.to(device)
                 output = model(images)
                 val_loss += criterion(output, labels).item()
-                equals = torch.eq(output.argmax(1), labels)
-                correct += equals.type(torch.float).sum().item()
+                correct += (output.argmax(1) == labels).type(torch.float).sum().item()
             
             val_loss /= num_batches
-            correct /= len(dataloader.dataset)
-            print(f"Validation complete: \nval_loss: {val_loss:.8f}, accuracy: {(100*correct):.1f}%")
+            accuracy = 100 *correct / len(dataloader.dataset)
+            print(f"Validation complete: \nval_loss: {val_loss:.8f}, cumulative_accuracy: {accuracy:.1f}%")
     except torch.cuda.OutOfMemoryError as e:
         print(f"GPU Memory is full: {e} \nTerminating the code")
         sys.exit(1)
@@ -71,8 +75,8 @@ def main():
     print(f"Using {device} device")
 
     try:
-        Practice_MLP = NeuralNetwork().to(device)
-        param_count = sum(p.numel() for p in Practice_MLP.parameters())
+        Simple_MLP = NeuralNetwork().to(device)
+        param_count = sum(p.numel() for p in Simple_MLP.parameters())
         print(f"Total Parameters: {param_count}")
     except torch.cuda.OutOfMemoryError as e:
         print(f"GPU Memory is full: {e} \nTerminating the code")
@@ -89,11 +93,11 @@ def main():
         sys.exit(1)
 
     criterion = get_loss()
-    optimizer = optim.Adam(Practice_MLP.parameters(), lr = 1e-3)
+    optimizer = optim.Adam(Simple_MLP.parameters(), lr = 1e-3)
 
     for epoch_count in range(1, 11):
-        train_epoch(Practice_MLP, train_loader, device, criterion, optimizer, epoch_count)
-        validate(Practice_MLP, test_loader, device, criterion)
+        train_epoch(Simple_MLP, train_loader, device, criterion, optimizer, epoch_count)
+        validate(Simple_MLP, test_loader, device, criterion)
         
 if __name__ == "__main__":
     main()
