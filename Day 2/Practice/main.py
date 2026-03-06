@@ -1,15 +1,13 @@
 import sys
+import pandas as pd
 
 import torch
 from torch import optim, cuda, OutOfMemoryError
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision.transforms import ToTensor
 
 from model import NeuralNetwork
 from data_loader import get_dataloaders
 from loss import get_loss
-from train_utils import train_epoch, validate
+from train_utils import train_epoch, validate_epoch
 
 def main():
     device = torch.device("cuda" if cuda.is_available() else "cpu")
@@ -28,7 +26,13 @@ def main():
 
     criterion = get_loss(device)
     optimizer = optim.Adam(model.parameters(), lr = 1e-3)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size = 3, gamma = 0.1)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode = 'min', factor = 0.1, patience = 2)
+    history = {
+        "train loss":[], 
+        "train accuracy":[],
+        "validation loss":[], 
+        "validation accuracy":[]
+    }
 
     try:
         train_dataloader, test_dataloader = get_dataloaders(batch_size = 64)
@@ -40,15 +44,27 @@ def main():
     best = 0.0
 
     for epoch_count in range(1, 11):
-        train_epoch(model, train_dataloader, device, criterion, optimizer, epoch_count)
-        accuracy = validate(model, test_dataloader, device, criterion)
+        train_loss, train_accuracy = train_epoch(model, train_dataloader, device, criterion, optimizer, epoch_count)
+        val_loss, val_accuracy = validate_epoch(model, test_dataloader, device, criterion)
+        scheduler.step(val_loss)
 
-        if accuracy > best:
-            best = accuracy
+        history["train loss"].append(train_loss)
+        history["train accuracy"].append(train_accuracy)
+        history["validation loss"].append(val_loss)
+        history["validation accuracy"].append(val_accuracy)
+
+        if val_accuracy > best:
+            best = val_accuracy
             torch.save(model.state_dict(), "best_cnn_model.pth")
             print(f"New best validation accuracy ({best:.1f}%) \nModel saved")
 
     print(f"Training complete \nBest validation accuracy: {best:.1f}%")
 
+    df = pd.DataFrame(history)
+    df.index.name = 'Epoch'
+    df.index += 1
+    df.to_csv("model_history.csv")
+    print(f"Model history saved to 'model_history.csv'")
+    
 if __name__ == "__main__":
     main()

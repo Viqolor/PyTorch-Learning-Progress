@@ -35,6 +35,7 @@ def train_epoch(model, dataloader, device, criterion, optimizer, epoch_count):
                 batch_loss = 0.0
 
         print(f"Epoch complete \nTrain loss: {train_loss/num_batches:.8f}, overall accuracy: {100 * correct / len(dataloader.dataset):.1f}%")
+        return train_loss/num_batches, 100 * correct / len(dataloader.dataset)
     except OutOfMemoryError as e:
         print(f"GPU Memory is full: {e} \nTerminating the code")
         sys.exit(1)
@@ -42,7 +43,7 @@ def train_epoch(model, dataloader, device, criterion, optimizer, epoch_count):
         print(f"Unexpected error occurred: {e} \nTerminating the code")
         sys.exit(1)
 
-def validate(model, dataloader, device, criterion):
+def validate_epoch(model, dataloader, device, criterion):
     num_batches = len(dataloader)
     model.eval()
     val_loss, correct = 0.0, 0
@@ -59,7 +60,7 @@ def validate(model, dataloader, device, criterion):
                 
             print(f"Validation complete \nValidation loss: {val_loss/num_batches:.8f}, overall accuracy: {100 * correct / len(dataloader.dataset):.1f}%")
 
-        return 100 * correct / len(dataloader.dataset)
+        return val_loss/num_batches, 100 * correct / len(dataloader.dataset)
     except OutOfMemoryError as e:
         print(f"GPU Memory is full: {e} \nTerminating the code")
         sys.exit(1)
