@@ -55,7 +55,7 @@ def main():
 
         if val_accuracy > best:
             best = val_accuracy
-            torch.save(model.state_dict(), "best_cnn_model.pth")
+            torch.save(model.state_dict(), "practice_best_cnn_model.pth")
             print(f"New best validation accuracy ({best:.1f}%) \nModel saved")
 
     print(f"Training complete \nBest validation accuracy: {best:.1f}%")
@@ -63,8 +63,8 @@ def main():
     df = pd.DataFrame(history)
     df.index.name = 'Epoch'
     df.index += 1
-    df.to_csv("model_history.csv")
-    print(f"Model history saved to 'model_history.csv'")
+    df.to_csv("practice_model_history.csv")
+    print(f"Model history saved to 'practice_model_history.csv'")
     
 if __name__ == "__main__":
     main()
