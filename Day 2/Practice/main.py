@@ -26,7 +26,7 @@ def main():
         print(f"Unexpected error occurred: {e} \nTerminating the code")
         sys.exit(1)
 
-    criterion = get_loss()
+    criterion = get_loss(device)
     optimizer = optim.Adam(model.parameters(), lr = 1e-3)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size = 3, gamma = 0.1)
 
