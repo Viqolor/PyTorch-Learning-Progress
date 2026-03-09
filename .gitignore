@@ -1,0 +1,28 @@
+# --- Python/Environment ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.ipynb_checkpoints/
+
+# --- PyTorch/ML Specific ---
+*.pt
+*.pth
+*.ckpt
+*.weights
+outputs/
+runs/
+
+# --- Data (CRITICAL) ---
+*.npy
+*.npz
+*.csv
+*.h5
+data/
+datasets/
+
+# --- OS/Editor Specific ---
+.DS_Store
+.vscode/
+.cursor/
