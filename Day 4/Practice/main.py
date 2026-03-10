@@ -8,6 +8,7 @@ from model import ResNet
 from dataloader import get_loaders
 from loss import get_loss
 from train import train_epoch, validate_epoch
+from utils import plot_confusion_matrix
 
 def main():
     device = torch.device("cuda" if cuda.is_available() else "cpu")
@@ -46,14 +47,17 @@ def main():
 
         if val_acc > best_acc:
             best_acc = val_acc
-            torch.save(model.state_dict(), "best_ResNet.pth")
+            torch.save(model.state_dict(), "Best ResNet.pth")
             print(f"New Best Accuracy ({val_acc:.2f}%) Saved")
 
     df = pd.DataFrame(history)
     df.index.name = "Epoch"
     df.index += 1
-    df.to_csv("ResNet_training_log.csv")
-    print(f"Training complete\n Results saved to 'ResNet_training_log.csv'")
+    df.to_csv("ResNet Training Log.csv")
+    print(f"Training complete\nResults saved to 'ResNet Training Log.csv'")
+
+    classes = ['T-shirt', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+    plot_confusion_matrix(model, test_loader, device, classes)
 
 if __name__ == "__main__":
     main()

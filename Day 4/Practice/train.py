@@ -6,11 +6,11 @@ def train_epoch(model, dataloader, criterion, device, optimizer, epoch):
     cumul_loss, batch_loss, correct, pred, cumul_total, batch_total= 0.0, 0.0, 0, 0, 0, 0
     print(f"Epoch #{epoch}")
 
-    for batch, (images, labels) in enumerate(dataloader):
-        images, labels = images.to(device), labels.to(device)
+    for batch, (images, costs, labels) in enumerate(dataloader):
+        images, costs, labels = images.to(device), costs.to(device), labels.to(device)
 
         optimizer.zero_grad()
-        output = model(images)
+        output = model(images, costs)
         loss = criterion(output, labels)
         loss.backward()
         optimizer.step()
@@ -37,10 +37,10 @@ def validate_epoch(model, dataloader, criterion, device):
     loss, correct, total = 0.0, 0, 0
 
     with torch.no_grad():
-        for images, labels in dataloader:
-            images, labels = images.to(device), labels.to(device)
+        for images, costs, labels in dataloader:
+            images, costs, labels = images.to(device), costs.to(device), labels.to(device)
 
-            output = model(images)
+            output = model(images, costs)
             loss += criterion(output, labels).item()
             correct += (output.argmax(1) == labels).sum().item()
             total += len(images)

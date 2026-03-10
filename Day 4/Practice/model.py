@@ -37,7 +37,21 @@ class ResNet(nn.Module):
         self.layer2 = self.make_layer(64, 2, stride = 2)
         self.layer3 = self.make_layer(128, 2, stride = 2)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(128, num_classes)
+
+        self.tab_fc = nn.Sequential(
+            nn.Linear(1, 32),
+            nn.BatchNorm1d(32),
+            nn.ReLU(inplace = True),
+            nn.Dropout(p = 0.1),
+            nn.Linear(32, 32),
+            nn.BatchNorm1d(32),
+            nn.ReLU(inplace = True)
+        )
+
+        self.fc = nn.Sequential(
+            nn.Dropout(p = 0.2),
+            nn.Linear(128 + 32, num_classes)
+            )
 
     def make_layer(self, out_channels, num_blocks, stride):
         strides = [stride] + [1] * (num_blocks - 1)
@@ -48,29 +62,34 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, images, costs):
         def print_shape(name, tensor):
             if not hasattr(self, "_printed"):
                 print(f"{name}: {tensor.shape}")
 
-        out = F.relu(self.bn1(self.conv1(x)))
-        print_shape("Stem", out)
+        img_features = F.relu(self.bn1(self.conv1(images)))
+        print_shape(f"Stem", img_features)
 
-        out = self.layer1(out)
-        print_shape("Layer 1", out)
+        img_features = self.layer1(img_features)
+        print_shape(f"Layer 1", img_features)
 
-        out = self.layer2(out)
-        print_shape("Layer 2", out)
+        img_features = self.layer2(img_features)
+        print_shape(f"Layer 2", img_features)
 
-        out = self.layer3(out)
-        print_shape("Layer 3", out)
+        img_features = self.layer3(img_features)
+        print_shape(f"Layer 3", img_features)
 
-        out = self.avg_pool(out)
-        print_shape("Global_Pool", out)
+        img_features = self.avg_pool(img_features)
+        print_shape(f"Global_Pool", img_features)
 
-        out = torch.flatten(out, 1)
-        out = self.fc(out)
-        print_shape("FC", out)
+        img_features = torch.flatten(img_features, 1)
+        tab_features = self.tab_fc(costs)
+
+        combined = torch.cat((img_features, tab_features), dim = 1)
+        print_shape(f"Concat", combined)
+
+        out = self.fc(combined)
+        print_shape(f"FC", out)
 
         self._printed = True
 
