@@ -42,14 +42,14 @@ class ResNet(nn.Module):
             nn.Linear(1, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(inplace = True),
-            nn.Dropout(p = 0.1),
+            nn.Dropout(p = 0.2),
             nn.Linear(32, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(inplace = True)
         )
 
         self.fc = nn.Sequential(
-            nn.Dropout(p = 0.2),
+            nn.Dropout(p = 0.25),
             nn.Linear(128 + 32, num_classes)
             )
 
