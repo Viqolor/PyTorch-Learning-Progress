@@ -1,8 +1,7 @@
 import torch
-from torch.utils.data import DataLoader
-from torchvision import transforms, datasets
+from torch.utils.data import DataLoader 
+from torchvision import transforms, datasets 
 
-import torch
 import numpy as np
 
 def generate_cost(label):
@@ -10,17 +9,18 @@ def generate_cost(label):
     base = base_prices[label]
     sd = base * 0.25
     price = np.random.normal(base, sd)
-    price = max(price, 1.0)
-    normalized_cost = torch.tensor([price / 200.0], dtype = torch.float32)
-    
-    return normalized_cost
+    price = max(price, 0)
+    normalized_price = torch.tensor([price / 200.0], dtype = torch.float32)
+
+    return normalized_price
 
 class MultimodalFashionMNIST(datasets.FashionMNIST):
     def __getitem__(self, index):
         img, label = super().__getitem__(index)
         cost = generate_cost(label)
-        return img, cost, label
 
+        return img, cost, label
+    
 def get_loaders(batch_size = 128):
     train_transform = transforms.Compose([
         transforms.RandomHorizontalFlip(p = 0.5),
@@ -36,7 +36,7 @@ def get_loaders(batch_size = 128):
         download = True
     )
 
-    train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
+    train_loader = DataLoader(train_dataset, batch_size = batch_size,  shuffle = True)
 
     test_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -50,6 +50,6 @@ def get_loaders(batch_size = 128):
         download = True
     )
 
-    test_loader = DataLoader(test_dataset, batch_size = batch_size, shuffle = False)
+    test_loader  = DataLoader(test_dataset, batch_size = batch_size, shuffle = True)
 
     return train_loader, test_loader
